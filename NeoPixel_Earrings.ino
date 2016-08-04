@@ -5,7 +5,6 @@
 
 #define NUM_PIXELS 16
 #define RING_PIN 0
-#define MIC_PIN 1
 
 int animation = 0; // tracks current animation
 const long duration = 20000; // duration of each animation
