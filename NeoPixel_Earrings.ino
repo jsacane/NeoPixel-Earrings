@@ -7,49 +7,51 @@
 #define RING_PIN 0
 #define MIC_PIN 1
 
-const int sampleWindow = 20;
+int animation = 0; // tracks current animation
+const long duration = 15000; // 15 seconds in milliseconds
 
 Adafruit_NeoPixel ring = Adafruit_NeoPixel(NUM_PIXELS, RING_PIN);
 
 void setup()
-{
-  Serial.begin(9600); // debugging
-  
+{  
   ring.begin();
+  ring.setBrightness(63);
   ring.show();
 }
 
 void loop()
 {
-  // switch between animations
-  switch (animation) {
-    case 0:
-      Serial.println("animation #1");
-      colorWipe(ring.Color(255, 0, 0), 40); // Red
-      colorWipe(ring.Color(0, 255, 0), 40); // Green
-      colorWipe(ring.Color(0, 0, 255), 40); // Blue
-      break;
-      
-    case 1:
-      Serial.println("animation #2");
-      rainbow(20);
-      break;
+  unsigned long start = millis(); // reset timer
+  resetRing();
+  
+  while (millis() - start < duration) {
+    // switch animations every 30 seconds
+    switch(animation) {
+      case 0:
+        colorWipe(ring.Color(255, 0, 0), 50); // Red
+        colorWipe(ring.Color(0, 255, 0), 50); // Green
+        colorWipe(ring.Color(0, 0, 255), 50); // Blue
+        break;
 
-    case 2:
-      Serial.println("animation #3");
-      chase(20);
-      break;
+      case 1:
+        rainbow(30);
+        break;
 
-    case 3:
-      Serial.println("animation #4");
-      rainbowCycle(20);
-      break;
+      case 2:
+        chase(40);
+        break;
 
-    case 4:
-      Serial.println("animation #5");
-      theaterChaseRainbow(50);
-      break;
+      case 3:
+        rainbowCycle(30);
+        break;
+
+      case 4:
+        theaterChaseRainbow(60);
+        break;
+    }
   }
+  
+  animation = (animation + 1) % 5;
 }
 
 // Wipe through red/green/blue
