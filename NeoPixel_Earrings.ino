@@ -8,8 +8,6 @@
 #define MIC_PIN 1
 
 const int sampleWindow = 20;
-unsigned int clap;
-int animation = 0; // begin with first animation 
 
 Adafruit_NeoPixel ring = Adafruit_NeoPixel(NUM_PIXELS, RING_PIN);
 
@@ -34,7 +32,7 @@ void loop()
       
     case 1:
       Serial.println("animation #2");
-      rainbow(10);
+      rainbow(20);
       break;
 
     case 2:
@@ -44,7 +42,7 @@ void loop()
 
     case 3:
       Serial.println("animation #4");
-      rainbowCycle(1);
+      rainbowCycle(20);
       break;
 
     case 4:
@@ -52,20 +50,12 @@ void loop()
       theaterChaseRainbow(50);
       break;
   }
-  
 }
 
 // Wipe through red/green/blue
 void colorWipe(uint32_t color, uint8_t wait)
 {
-  for (uint16_t i=0; i<ring.numPixels(); i++) {
-    
-    animation = checkClap();
-    if (animation != 0) { // if clapped, reset ring and exit
-      resetRing();
-      break;
-    }
-    
+  for (uint16_t i=0; i<ring.numPixels(); i++) {   
     ring.setPixelColor(i, color);
     ring.show();
     delay(wait);
@@ -78,12 +68,6 @@ void rainbow(uint8_t wait)
   uint16_t i, j;
   
   for (j=0; j<256; j++) {
-    
-    animation = checkClap();
-    if (animation != 1) {
-      resetRing();
-      break;
-    }
     
     for (i=0; i<ring.numPixels(); i++) {
       ring.setPixelColor(i, Wheel((i+j) & 255));
@@ -103,12 +87,6 @@ void chase(uint8_t wait)
   
   for (uint16_t i=0; i<ring.numPixels(); i++) {
     
-    animation = checkClap();
-    if (animation != 2) {
-      resetRing();
-      break;
-    }
-    
     // turn on next pixels
     ring.setPixelColor(((i+1) % 16), ring.Color(255,255,255));
     ring.setPixelColor(((i+9) % 16), ring.Color(255,255,255));
@@ -127,12 +105,6 @@ void rainbowCycle(uint8_t wait)
   uint16_t i, j;
 
   for (j=0; j<256*5; j++) {
-
-    animation = checkClap();
-    if (animation != 3) {
-      resetRing();
-      break;
-    }
     
     for (i=0; i<ring.numPixels(); i++) {
       ring.setPixelColor(i, Wheel(((i * 256 / ring.numPixels()) + j) & 255));
@@ -145,14 +117,7 @@ void rainbowCycle(uint8_t wait)
 // Theater-style chase w/ all colors
 void theaterChaseRainbow(uint8_t wait)
 {
-  for (int j=0; j<256; j++) { // cycle through all 256 colors
-
-    animation = checkClap();
-    if (animation != 4) {
-      resetRing();
-      break;
-    }
-    
+  for (int j=0; j<256; j++) { // cycle through all 256 colors  
     for (int q=0; q<3; q++) {
 
       for (uint16_t i=0; i<ring.numPixels(); i+=3) { // turn on every third pixel
@@ -191,36 +156,4 @@ void resetRing()
     ring.setPixelColor(i, 0);
     ring.show();
   }
-}
-
-// Checks if there is a noticeable clap and switches animations
-int checkClap()
-{
-  unsigned long start = millis();
-  unsigned int peakToPeak = 0;
-
-  unsigned int signalMax = 0;
-  unsigned int signalMin = 1024;
-
-  while (millis() - start < sampleWindow) { // measure for 20ms
-    clap = analogRead(MIC_PIN);
-    if (clap < 1024) {
-      if (clap > signalMax) {
-        signalMax = clap;
-      } else if (clap < signalMin) {
-        signalMin = clap;
-      }       
-    }
-  }
-
-  peakToPeak = signalMax - signalMin;
-  double volts = (peakToPeak * 3.3)/1024; // convert analog to volts
-
-  Serial.println(volts);
-  if (volts >= 1.0) {
-    animation = (animation + 1) % 5; // cycle through the animations on clap
-  }
-
-  return animation;
-  
 }
